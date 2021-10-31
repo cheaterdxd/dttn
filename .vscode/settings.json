@@ -1,0 +1,8 @@
+{
+    "python.analysis.extraPaths": [
+        "./formatOutput"
+    ],
+    "files.associations": {
+        "stdlib.h": "c"
+    }
+}
