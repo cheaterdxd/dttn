@@ -13,7 +13,7 @@ def executeOnce(command):
 
     args_l = shlex.split(command)
     # print(command)
-    return subpr.run(args_l,capture_output=True)
+    return subpr.run(args_l,stdout=subpr.PIPE, stderr=subpr.PIPE)
 
 def executeInteractive(command):
     '''Thực thi lệnh và nói chuyện với tiến trình mới'''
