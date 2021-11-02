@@ -1,13 +1,16 @@
-from posix import listdir
-from pwnlib.util.proc import cwd
-# from importFile import os
 from pathlib import Path
-import os
+import importFile
+from executeCommand import executeOnce
 from formatOutput.prettyAnnounce import bcolors
+
 
 def is_path_exist(path):
     return Path(path).exists()
 
+def clean_terminal():
+    # importFile.os.system('clear')
+    print('\033[2J')
+    print('\033[0;0H')
 
 # prefix components:
 space =  '    '
@@ -63,6 +66,69 @@ def list_dir(path):
 def list_dir_verbose(path):
     for line in tree_in_verbose(Path(path)):
         print(line)
+
+def list_process():
+    '''
+    Liệt kê các tiến trình đang chạy trong hệ điều hành
+    return: danh sách các tiến trình đang hiện có -> List
+    return: -1 nếu quá trình lấy thông tin lỗi -> Bool
+    return: -2 nếu hệ điều hành không phải linux -> Int
+    '''
+    if(importFile.os_type.upper()=='Linux'.upper()):
+        command = 'ps -aux'
+        reponse = executeOnce(command)
+        if(reponse.returncode == 0):
+            return reponse.stdout.decode().split("\n")
+        else:
+            return -1
+    else:
+        return -2
+
+def list_process_as_root(root_talk):
+    '''
+    Liệt kê các tiến trình đang chạy bằng quyền root
+    return: -1 nếu tiến trình root bị đóng -> Int
+    return: -2 nếu hệ điều hành không phải linux -> Int 
+    return: danh sách tiến trình nếu thành công -> List
+    '''
+    if(importFile.os_type.upper()=='Linux'.upper()):
+        process_list = []
+        if(root_talk.poll()==None):
+            root_talk.sendline("ps -aux")
+            while(True):
+                out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+                if(out==''):
+                    break
+                process_list.append(out)
+            return process_list
+        else:
+            return -1
+    else:
+        return -2
+    
+def leak(name,root_talk):
+    '''
+    Lấy thông tin file shadow hoặc passwd
+    return:
+    -1 : nếu file không phải là shadow, passwd
+    -2 : nếu process root bị đóng
+    [] : danh sách lines trong file
+    '''
+    if(name not in ['shadow','passwd']):
+        return -1
+    else:
+        if(root_talk.poll()==None):
+            user_l = []
+            root_talk.sendline(f'cat /etc/{name}')
+            while(True):
+                out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+                if(out==''):
+                    break
+                user_l.append(out)
+            return user_l
+        else:
+            return -2
+
 
 
 def main():

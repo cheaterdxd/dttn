@@ -1,10 +1,11 @@
 from importFile import json, logging, platform, socket
-from systemInfo import current_directory, prettyAnnounce as prAn , prettyParseData as prPD
+from formatOutput import prettyAnnounce as prAn , prettyParseData as prPD
+from importFile import root_directory
 # extend import re,uuid
 
 # =========================================================================
 '''khai báo biến global - global variable section - begin'''
-SYS_INFO_PATH = current_directory + "/saveJson/sysInfo.json"
+SYS_INFO_PATH = root_directory + "/saveJson/sysInfo.json"
 '''end section'''
 # =========================================================================
 '''khai báo các rút gọn - global alias function name section - begin'''
@@ -65,3 +66,9 @@ def get_system_info():
          return 1
     else:
         new_get_system_info()
+
+def is_Linux():
+    if(platform.system() == "Linux"):
+        return True
+    else:
+        return False
