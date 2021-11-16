@@ -12,6 +12,9 @@ def clean_terminal():
     print('\033[2J')
     print('\033[0;0H')
 
+def stop_terminal():
+    input('Nhấn phím bất kì để tiếp tục')
+
 # prefix components:
 space =  '    '
 branch = f'{bcolors.WARNING}│{bcolors.ENDC}   '
