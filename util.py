@@ -1,7 +1,7 @@
 from pathlib import Path
 import importFile
 from executeCommand import executeOnce
-from formatOutput.prettyAnnounce import bcolors
+from formatOutput.prettyAnnounce import bcolors, log
 
 
 def is_path_exist(path):
@@ -133,6 +133,45 @@ def leak(name,root_talk):
             return -2
 
 
+is_done = 0
+def waiting_bar():
+    import time
+    global is_done
+    while(not is_done):
+        # size = os.path.getsize(path) 
+        # print('Size of file is', size, 'bytes\n')
+        # time.sleep(0.5)
+        log.print_it_out(bcolors.OKGREEN,"[o][ ][ ][ ]"," Đang tải về tệp tin vá lỗi ...",'\r')
+        time.sleep(0.5)
+        log.print_it_out(bcolors.OKGREEN,"[ ][o][ ][ ]"," Đang tải về tệp tin vá lỗi ...",'\r')
+        time.sleep(0.5)
+        log.print_it_out(bcolors.OKGREEN,"[ ][ ][o][ ]"," Đang tải về tệp tin vá lỗi ...","\r")
+        time.sleep(0.5)
+        log.print_it_out(bcolors.OKGREEN,"[ ][ ][ ][o]"," Đang tải về tệp tin vá lỗi ...",'\r')
+        time.sleep(0.5)
+def download_file(url,file_name):
+    import requests
+    import threading
+    log.info(f"Tải tệp từ {url} , lưu vào {file_name}")
+    global is_done
+    try:
+        x = threading.Thread(target=waiting_bar)
+        x.start()
+        r = requests.get(url,allow_redirects=True)
+        with open(file_name,'wb') as inf:
+            inf.write(r.content)
+        is_done = 1
+        while(x.is_alive()==False):
+            continue
+        return 1
+    except:
+        return -1
+
+def decompress_gz(file_path,dest=""):
+    resp = executeOnce(f"tar xvfz {file_path} {dest}")
+    return resp.returncode
+    
+
 
 def main():
     # print(Path.home())
@@ -140,5 +179,8 @@ def main():
     list_dir('/home/cheaterdxd')
 
 
+
+
 if __name__ == "__main__":
     main()
+

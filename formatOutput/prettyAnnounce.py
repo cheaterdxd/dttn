@@ -28,5 +28,5 @@ class log:
     def warning(mess):
         log.print_it_out(type_of_log[log.warning.__name__][0],type_of_log[log.warning.__name__][1],mess)
 
-    def print_it_out(color, symbols, mess):
-        print(f"{color}[{symbols}] {bcolors.ENDC} {mess}")
+    def print_it_out(color, symbols, mess, endc='\n'):
+        print(f"{color}[{symbols}] {bcolors.ENDC} {mess}",end=endc)

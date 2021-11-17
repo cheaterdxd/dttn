@@ -1,5 +1,3 @@
-from logging import CRITICAL
-from subprocess import STDOUT
 from importFile import subprocess as subpr
 from importFile import shlex
 
@@ -18,4 +16,4 @@ def executeOnce(command):
 def executeInteractive(command):
     '''Thực thi lệnh và nói chuyện với tiến trình mới'''
     args_l = shlex.split(command)
-    subpr.Popen(args_l)
+    return subpr.Popen(args_l,stdout=subpr.PIPE)

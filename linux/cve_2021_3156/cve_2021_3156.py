@@ -5,11 +5,12 @@ b3: xây dựng file exploit
 b4: buid file exploit
 b5: chạy file exploit
 '''
+
 from pwn import process
 from importFile import root_directory,shlex,subprocess,os
-from executeCommand import executeOnce
+from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, is_path_exist,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
+from util import clean_terminal, decompress_gz, download_file, is_path_exist,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -105,6 +106,45 @@ def run():
             promt = succes_promt(s)
             promt.cmdloop()
 
+def fix_bug():
+    '''
+    Thực hiện các bước vá lỗi cve 2021-3156
+    B1: tải bản vá
+    B2: giải nén bản vá
+    B3: cài đặt bản vá
+    '''
+    log.warning("Chức năng này yêu cầu thực thi với quyền root do đó bạn cần cung cấp mật khẩU !")
+    log.warning("Bạn có đồng ý thực hiện chức năng không? [y/n]")
+    choice = str(input(">>> ").strip('\n'))
+    while(choice not in ['y','n']):
+        log.warning("Lựa chọn không hợp lý! Xin hãy nhập đúng lựa chọn!")
+        choice = input(">>> ")
+    
+    if(choice == 'n'):
+        return
+    elif choice == 'y':
+        packed_file = module_root_path+'patched.gz'
+        destionation_path = module_root_path+'patched'
+        ret = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',packed_file)
+        if(ret == 1):
+            log.done("Đã tải xong tệp vá lỗi!")
+            log.info("Giải nén tệp vá lỗi!")
+            ret_2 = decompress_gz(packed_file,destionation_path)
+            if ret_2>=0:
+                log.done("Giải nén thành công!")
+                log.info("Cài đặt tệp vá lỗi!")
+                os.chdir(destionation_path)
+                executeOnce('sudo apt update')
+                executeOnce("sudo apt install make")
+                # executeOnce('sudo apt install build-essential')
+                # executeOnce('sudo ./configure')
+                # executeOnce('sudo make && sudo make install')
+
+
+        stop_terminal()
+
+
+
 def entry_menu():
     while(1):
         clean_terminal()
@@ -115,8 +155,7 @@ def entry_menu():
         elif choice == '1':
             run()
         elif choice == '2':
-            print("Chức năng chưa xây dựng")
-            input("Ấn Enter để tiếp tục")
+            fix_bug()
 
 def entry():
     '''
@@ -283,3 +322,4 @@ class succes_promt(Cmd):
                 list_dir(arg_l[1])
 
     
+
