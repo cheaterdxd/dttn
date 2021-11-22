@@ -10,7 +10,7 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, decompress_gz, download_file, is_path_exist,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
+from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -321,5 +321,21 @@ class succes_promt(Cmd):
             else:
                 list_dir(arg_l[1])
 
-    
+    def do_findext(self, arg):
+        '''
+        Liệt kê tất cả các file theo định dạng đuôi
+        -e [file ext] [path_file]
+        '''
+        arg_l = shlex.split(arg)
+        options = ['-e']
+        path_find = arg_l[2]
+        file_ext = arg_l[1]
+        if(arg_l[0] not in options):
+            print(arg)
+            log.fail("Đối số không chính xác, vui lòng kiểm tra lại!")
+        else:
+            list_f_resp = list_ext_at_path(path_find,file_ext)
+            for f in list_f_resp:
+                print(f)
+
 

@@ -87,6 +87,17 @@ def list_process():
     else:
         return -2
 
+def list_ext_at_path(path, ext):
+    '''
+        Liệt kê file nằm ở đường dẫn path có đuôi .[ext]
+        parm1 path: đường dẫn tìm kiếm
+        parm2 ext: đuôi file tìm kiếm
+    '''
+    import glob
+    log.info(f"Tìm kiếm *.{ext} trong thư mục {path}")
+    list_f_response = glob.glob(f'{path}/*.{ext}')
+    return list_f_response
+
 def list_process_as_root(root_talk):
     '''
     Liệt kê các tiến trình đang chạy bằng quyền root
@@ -149,6 +160,7 @@ def waiting_bar():
         time.sleep(0.5)
         log.print_it_out(bcolors.OKGREEN,"[ ][ ][ ][o]"," Đang tải về tệp tin vá lỗi ...",'\r')
         time.sleep(0.5)
+
 def download_file(url,file_name):
     import requests
     import threading

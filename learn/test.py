@@ -1,9 +1,6 @@
-
-av = 'aaaaaa\ cccc'
-dest=''
-for i in av:
-    if(not i.isalnum() and i not in ['_','-','$']):
-        dest+= '\\'
-    dest+=i
-
-print(dest)
+def findext():
+    import glob
+    list_f_response = glob.glob('/home/cheaterdxd/dttn/*',recursive=True)
+    for f in list_f_response:
+        print(f)
+findext()
