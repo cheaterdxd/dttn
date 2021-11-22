@@ -8,8 +8,6 @@ def signal_handler(signal, frame):
     print('\nBạn đã thoát chương trình bằng Ctrl+C. Hẹn gặp lại. ')
     sys.exit(0)
 
-
-
 def run_entry_for_cve(module_name):
     # load the module, will raise ImportError if module cannot be loaded
     m = importlib.import_module(module_name)
