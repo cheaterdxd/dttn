@@ -202,7 +202,8 @@ def decompress_gz(file_path,dest=""):
     else:
         log.fail(f"Không tìm thấy tệp tin {file_path}")
     
-
+def print_stdout_stderr(arg):
+    print(arg.stdout.decode()+'\n'+arg.stderr.decode())
 
 def main():
     # print(Path.home())
