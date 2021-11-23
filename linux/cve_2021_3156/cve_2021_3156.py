@@ -10,7 +10,7 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, stop_terminal
+from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_stdout_stderr, stop_terminal
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -136,12 +136,13 @@ def fix_bug():
             if ret_2>=0:
                 log.done("Giải nén thành công!")
                 log.info("Cài đặt tệp vá lỗi!")
-                os.chdir(destionation_path)
-                # print(executeOnce('sudo apt update'))
-                # print(executeOnce("sudo apt install make"))
-                # executeOnce('sudo apt install build-essential')
-                # executeOnce('sudo ./configure')
-                # executeOnce('sudo make && sudo make install')
+                decompress_folder = 'sudo-1.9.5p2'
+                os.chdir(destionation_path+'/'+decompress_folder)
+                print_stdout_stderr(executeOnce('sudo apt-get update'))
+                print_stdout_stderr(executeOnce("sudo apt-get install make"))
+                print_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
+                print_stdout_stderr(executeOnce('sudo ./configure'))
+                print_stdout_stderr(executeOnce('sudo make && sudo make install'))
 
 
         stop_terminal()
