@@ -142,7 +142,8 @@ def fix_bug():
                 print_stdout_stderr(executeOnce("sudo apt-get install make"))
                 print_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
                 print_stdout_stderr(executeOnce('sudo ./configure'))
-                print_stdout_stderr(executeOnce('sudo make && sudo make install'))
+                print_stdout_stderr(executeOnce('sudo make'))
+                print_stdout_stderr(executeOnce('sudo make install'))
 
 
         stop_terminal()

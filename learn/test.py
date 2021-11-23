@@ -40,4 +40,6 @@ def decompress_gz(file_path,dest=""):
         print('not found')
   
 # findext()
-decompress_gz('patched.tar.gz','patched_dir/')
+# decompress_gz('patched.tar.gz','patched_dir/')
+os.chdir('/home/tuan/dttn/linux/cve_2021_3156/patched_dir/sudo-1.9.5p2/')
+print(executeOnce("sudo make").stdout.decode())
