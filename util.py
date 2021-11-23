@@ -161,16 +161,21 @@ def waiting_bar():
         log.print_it_out(bcolors.OKGREEN,"[ ][ ][ ][o]"," Đang tải về tệp tin vá lỗi ...",'\r')
         time.sleep(0.5)
 
-def download_file(url,file_name):
+def download_file(url,file_name,file_container):
+    '''
+    download file from url
+        + filename : name of file use after completed
+        + file_container: parent folder path of the file
+    '''
     import requests
     import threading
-    log.info(f"Tải tệp từ {url} , lưu vào {file_name}")
+    log.info(f"Tải tệp từ {url} , lưu vào {file_container}")
     global is_done
     try:
         x = threading.Thread(target=waiting_bar)
         x.start()
         r = requests.get(url,allow_redirects=True)
-        with open(file_name,'wb') as inf:
+        with open(file_container+'/'+file_name,'wb') as inf:
             inf.write(r.content)
         is_done = 1
         while(x.is_alive()==False):
@@ -180,8 +185,22 @@ def download_file(url,file_name):
         return -1
 
 def decompress_gz(file_path,dest=""):
-    resp = executeOnce(f"tar xvfz {file_path} {dest}")
-    return resp.returncode
+    '''
+      giải nén tệp tin
+
+            file_path: đường dẫn tới file
+            dest: đường dẫn tới thư mục muốn giải nén, mặc định là tại chỗ 
+    '''
+    if(is_path_exist(file_path)):
+        if(dest!=''):
+            option = '-C'
+        else:
+            option = ''
+        resp = executeOnce(f"tar xfz {file_path} {option} {dest}")
+        print(resp)
+        return resp.returncode
+    else:
+        log.fail(f"Không tìm thấy tệp tin {file_path}")
     
 
 

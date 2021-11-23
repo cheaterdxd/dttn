@@ -123,19 +123,22 @@ def fix_bug():
     if(choice == 'n'):
         return
     elif choice == 'y':
-        packed_file = module_root_path+'patched.gz'
-        destionation_path = module_root_path+'patched'
-        ret = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',packed_file)
+        destionation_path = module_root_path+'patched_dir'
+        file_name = 'sudo-1.9.5p2.tar.gz'
+        if(is_path_exist(destionation_path)==False):
+            os.mkdir(destionation_path)
+        ret = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',file_name,destionation_path)
         if(ret == 1):
             log.done("Đã tải xong tệp vá lỗi!")
             log.info("Giải nén tệp vá lỗi!")
-            ret_2 = decompress_gz(packed_file,destionation_path)
+            os.chdir(destionation_path)
+            ret_2 = decompress_gz(destionation_path+'/'+file_name)
             if ret_2>=0:
                 log.done("Giải nén thành công!")
                 log.info("Cài đặt tệp vá lỗi!")
                 os.chdir(destionation_path)
-                executeOnce('sudo apt update')
-                executeOnce("sudo apt install make")
+                # print(executeOnce('sudo apt update'))
+                # print(executeOnce("sudo apt install make"))
                 # executeOnce('sudo apt install build-essential')
                 # executeOnce('sudo ./configure')
                 # executeOnce('sudo make && sudo make install')
