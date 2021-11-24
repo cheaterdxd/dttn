@@ -202,8 +202,12 @@ def decompress_gz(file_path,dest=""):
     else:
         log.fail(f"Không tìm thấy tệp tin {file_path}")
     
-def print_stdout_stderr(arg):
-    print(arg.stdout.decode()+'\n'+arg.stderr.decode())
+def print_check_stdout_stderr(arg):
+    stdout_s = arg.stdout.decode()
+    stderr_s = arg.stderr.decode()
+    print(stdout_s+'\n'+stderr_s)
+    if(stderr_s!='' and not 'warning' in stderr_s and not "WARNING" in stderr_s):
+        log.fail(stderr_s)
 
 def main():
     # print(Path.home())

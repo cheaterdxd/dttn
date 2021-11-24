@@ -10,7 +10,7 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_stdout_stderr, stop_terminal
+from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -123,28 +123,51 @@ def fix_bug():
     if(choice == 'n'):
         return
     elif choice == 'y':
+        # variable definition
         destionation_path = module_root_path+'patched_dir'
         file_name = 'sudo-1.9.5p2.tar.gz'
+        decompress_folder = 'sudo-1.9.5p2'
+        setup_folder = destionation_path+'/'+decompress_folder
+        # end definition
+        '''
+            - kiem tra su ton tai cua thu muc chua file pactched
+            - di chuyen den thu muc chua file patched
+            - tai file
+            - check ton tai file vua tai
+            - giai nen
+            - kiem tra su ton tai cua thu muc vua giai nen
+            - di den thu muc setup
+            - thuc hien cac lenh cap nhat va cai dat 
+        '''
         if(is_path_exist(destionation_path)==False):
             os.mkdir(destionation_path)
-        ret = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',file_name,destionation_path)
-        if(ret == 1):
+            os.chdir(destionation_path)
+        check_download = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',file_name,destionation_path)
+        if(check_download == 1 and is_path_exist(destionation_path+"/"+file_name)):
+            
             log.done("Đã tải xong tệp vá lỗi!")
             log.info("Giải nén tệp vá lỗi!")
-            os.chdir(destionation_path)
-            ret_2 = decompress_gz(destionation_path+'/'+file_name)
-            if ret_2>=0:
+
+            check_decompress = decompress_gz(destionation_path+'/'+file_name)
+            if check_decompress >= 0:
                 log.done("Giải nén thành công!")
                 log.info("Cài đặt tệp vá lỗi!")
-                # decompress_folder = 'sudo-1.9.5p2'
-                # os.chdir(destionation_path+'/'+decompress_folder)
-                # print_stdout_stderr(executeOnce('sudo apt-get update'))
-                # print_stdout_stderr(executeOnce("sudo apt-get install make"))
-                # print_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
-                # print_stdout_stderr(executeOnce('sudo ./configure'))
-                # print_stdout_stderr(executeOnce('sudo make'))
-                # print_stdout_stderr(executeOnce('sudo make install'))
-
+                
+                if is_path_exist(setup_folder):
+                    os.chdir(setup_folder)
+                    log.info("Cập nhật apt")
+                    print_check_stdout_stderr(executeOnce('sudo apt-get update'))
+                    log.info("Cài đặt công cụ biên dịch Make")
+                    print_check_stdout_stderr(executeOnce("sudo apt-get install make"))
+                    log.info("Cài đặt công cụ Buid-esssential")
+                    print_check_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
+                    log.info("Kiểm tra cài dặt trước khi cập nhật sudo")
+                    print_check_stdout_stderr(executeOnce('sudo ./configure'))
+                    log.info("Make và cài đặt sudo")
+                    print_check_stdout_stderr(executeOnce('sudo make'))
+                    print_check_stdout_stderr(executeOnce('sudo make install'))
+                else:
+                    log.fail(f"Không tồn tại thư mục {setup_folder}! Xảy ra lỗi nghiêm trọng.")
 
         stop_terminal()
 
