@@ -214,6 +214,25 @@ def main():
     # print_tree('/home/cheaterdxd/dttn')
     list_dir('/home/cheaterdxd')
 
+def yes_no_ask(ques):
+    '''
+    confirm lựa chọn exit, delete,...
+        ques: câu hỏi sẽ hỏi
+
+        y: return 1
+        n: return -1
+    '''
+    log.warning(ques)
+    is_input_fail = True
+    while(is_input_fail):
+        ans = str(input("[y/n]  ").strip('\n'))
+        if(ans.lower() == 'y'):
+            return 1
+        elif ans.lower() == 'n':
+            return -1
+        else:
+            log.fail("Nhập sai lựa chọn, chỉ y/Y (có) hoặc n/N (không).")
+
 
 
 

