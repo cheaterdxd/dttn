@@ -136,14 +136,14 @@ def fix_bug():
             if ret_2>=0:
                 log.done("Giải nén thành công!")
                 log.info("Cài đặt tệp vá lỗi!")
-                decompress_folder = 'sudo-1.9.5p2'
-                os.chdir(destionation_path+'/'+decompress_folder)
-                print_stdout_stderr(executeOnce('sudo apt-get update'))
-                print_stdout_stderr(executeOnce("sudo apt-get install make"))
-                print_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
-                print_stdout_stderr(executeOnce('sudo ./configure'))
-                print_stdout_stderr(executeOnce('sudo make'))
-                print_stdout_stderr(executeOnce('sudo make install'))
+                # decompress_folder = 'sudo-1.9.5p2'
+                # os.chdir(destionation_path+'/'+decompress_folder)
+                # print_stdout_stderr(executeOnce('sudo apt-get update'))
+                # print_stdout_stderr(executeOnce("sudo apt-get install make"))
+                # print_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
+                # print_stdout_stderr(executeOnce('sudo ./configure'))
+                # print_stdout_stderr(executeOnce('sudo make'))
+                # print_stdout_stderr(executeOnce('sudo make install'))
 
 
         stop_terminal()
