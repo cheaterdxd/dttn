@@ -35,8 +35,8 @@ def check_vuln():
         exit(1)
     else:
         error_key = b'malloc():'
-        for len_a in range(0,500):
-            for len_b in range(0,500):
+        for len_a in range(0,50):
+            for len_b in range(0,200):
                 brute_force_argument = [
                     "/usr/bin/sudoedit",
                     '-s',
