@@ -149,7 +149,7 @@ def fix_bug():
         '''
         if(is_path_exist(destionation_path)==False):
             os.mkdir(destionation_path)
-            os.chdir(destionation_path)
+        os.chdir(destionation_path)
         check_download = download_file('https://www.sudo.ws/dist/sudo-1.9.5p2.tar.gz',file_name,destionation_path)
         if(check_download == 1 and is_path_exist(destionation_path+"/"+file_name)):
             

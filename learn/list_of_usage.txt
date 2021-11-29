@@ -1,0 +1,16 @@
+Các chức năng kiểm tra? 
+- kiểm tra hệ điều hành
+- kiểm tra có bug 
+- kiểm tra phiên bản python 
+Các chức năng khai thác
+- shell 
+- tree path
+- tìm file theo ext
+- leak file shadow và file passwd
+- leak process (thường và sudo)
+Các chức năng sửa lỗi
+- fix bug 
+ + download
+ + giải nén
+ + cài đặt download
+ + check bug lại ?
