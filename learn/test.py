@@ -82,4 +82,9 @@ def do_the_fix():
 # decompress_gz('patched.tar.gz','patched_dir/')
 # os.chdir('/home/tuan/dttn/linux/cve_2021_3156/patched_dir/sudo-1.9.5p2/')
 # print(executeOnce("sudo make").stdout.decode())
-do_the_fix()
+# do_the_fix()
+def try_read_sudoers():
+    with open('/etc/sudoers','r') as fs:
+        print(fs.readlines(10))
+
+try_read_sudoers()

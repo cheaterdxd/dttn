@@ -54,7 +54,7 @@ def cve_menu():
         else:
             return str(all_cve[cve_idx-1]).lower() # lower_case
 
-def entry_dynamic_menu(options_text: list, number_of_ques:int, symbols_:str):
+def entry_dynamic_menu(options_text: list, number_of_ques:int, symbols_:str,quest_color='',symbols_color=''):
     '''
     In ra một menu có form:
     Hãy chọn thao tác mong muốn
@@ -68,18 +68,22 @@ def entry_dynamic_menu(options_text: list, number_of_ques:int, symbols_:str):
 
     Tham số:
 
-    options_text    [List]:  lựa chọn dướI dạng text
+    options_text    [List]: lựa chọn dướI dạng text
     number_of_ques  [int] : số dương lớn nhất của lựa chọn 
     symbols_        [str] : biểu tưỢng chờ nhập lựa chọn
+    quest_color     [color]: màu của câu hỏi
+    symbols_color   [color]: màu của symbols
     '''
-            
-    symbols_out = f'{logf.bcolors.OKCYAN}{symbols_}{logf.bcolors.ENDC} '
-
+    if(symbols_color!=''):        
+        symbols_out = f'{symbols_color}{symbols_}{logf.bcolors.ENDC} '
+    else:
+        symbols_out = f'{logf.bcolors.OKCYAN}{symbols_}{logf.bcolors.ENDC} '
+    
     while(1):
         print(f"{logf.bcolors.WARNING}Hãy chọn thao tác mong muốn{logf.bcolors.ENDC}\n")
         idx = 1 # 0 là Thoát option
-        for i in options_text:
-            print(f"{idx}. {i}")
+        for q_i in options_text:
+            print(f"{idx}. {quest_color}{q_i}{logf.bcolors.ENDC}")
             idx+=1
         print("0. Thoát")
         print(end='\n')

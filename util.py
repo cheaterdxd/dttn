@@ -41,7 +41,6 @@ def tree_in_verbose(dir_path: Path, prefix: str=''):
             yield prefix + pointer + path.name
         # if path.is_dir(): # extend the prefix and recurse:
             
-
 def tree_dir(dir_path: Path, prefix: str=''):
     """A recursive generator, given a directory Path object
     will yield a visual tree structure line by line
@@ -233,6 +232,32 @@ def yes_no_ask(ques):
         else:
             log.fail("Nhập sai lựa chọn, chỉ y/Y (có) hoặc n/N (không).")
 
+def up_root_for_exist_user(root_talk, username:str):
+    '''
+    Nâng quyền cho một người dùng đã tồn tại có quyền root
+
+    parm 1: root_talk: tiến trình root đã tạo
+    parm 2: username: tên người dùng muốn nâng quyền
+
+    return 
+        0 nếu thành công
+        -1 nếu thất bại
+        -2 nếu tiến trình root đã kết thúc
+    '''
+    command = f"echo '{username}    ALL=(ALL) ALL' >> /etc/sudoers"
+    if(root_talk.poll()==None):
+        root_talk.sendline(command)
+        root_talk.sendline('tail -1 /etc/sudoers')
+        while(True):
+            out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+            if(out==''):
+                break
+            if f'{username}    ALL=(ALL) ALL' in out:
+                return 0
+
+        return -1
+    else:
+        return -2
 
 
 

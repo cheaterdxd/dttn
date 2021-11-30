@@ -41,16 +41,16 @@ def main():
     check_before_run()
     while(1):
         clean_terminal()
-        choice = main_menu()
-        if(choice == '1'):
+        choice_in_menu = main_menu()
+        if(choice_in_menu == '1'):
             clean_terminal()
             get_system_info()
             input('Ấn Enter để thoát ra menu')
-        elif choice == '2':
-            choose = cve_menu()
-            if(choose!=None):
-                do_cve(choose)
-        elif choice == '3':
+        elif choice_in_menu == '2':
+            choose_in_cve_menu = cve_menu()
+            if(choose_in_cve_menu!=None):
+                do_cve(choose_in_cve_menu)
+        elif choice_in_menu == '3':
             exit()
     
     # run_exploit.run()
