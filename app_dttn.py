@@ -1,10 +1,11 @@
-from menu_list import cve_menu, main_menu
-from findInfoSystem import get_system_info
-from util import clean_terminal
+from menu_list import cve_menu, entry_dynamic_menu
+from findInfoSystem import get_system_info,is_Linux
+from util import clean_terminal, stop_terminal
 import importlib
 from importFile import sys, signal
+import importFile
 from formatOutput import prettyAnnounce
-
+logf = prettyAnnounce.log
 def signal_handler(signal, frame):
     print('\nBạn đã thoát chương trình bằng Ctrl+C. Hẹn gặp lại. ')
     sys.exit(0)
@@ -31,34 +32,35 @@ def check_before_run():
     num2_ver = ver[1]
     num3_ver = ver[2]
     if(num1_ver!='3'):
-        prettyAnnounce.log.warning("vui lòng nâng cấp lên python 3, tốt nhất là từ 3.6.9 trở lên")
+        logf.warning("vui lòng nâng cấp lên python 3, tốt nhất là từ 3.6.9 trở lên")
     elif(num2_ver<'6'):
-        prettyAnnounce.log.warning("chương trình có thể chạy không chính xác ở phiên bẳn python hiện tại, tốt nhất là từ 3.6.9 trở lên")
+        logf.warning("chương trình có thể chạy không chính xác ở phiên bẳn python hiện tại, tốt nhất là từ 3.6.9 trở lên")
     elif(num3_ver<'9'):
-        prettyAnnounce.log.warning("chương trình có thể chạy không chính xác ở phiên bẳn python hiện tại, tốt nhất là từ 3.6.9 trở lên")
+        logf.warning("chương trình có thể chạy không chính xác ở phiên bẳn python hiện tại, tốt nhất là từ 3.6.9 trở lên")
 def main():
+    
+    if(is_Linux()==False):
+        logf.fail("Hệ thống của bạn không phải Linux! Các chức năng dành cho Windows chưa được triển khai!")
+        exit(1)
+    else:
+        importFile.os_type = 'linux'
     signal.signal(signal.SIGINT, signal_handler)
     check_before_run()
     while(1):
         clean_terminal()
-        choice_in_menu = main_menu()
+        main_menu_func = ['Xem thông tin hệ thống','Kiểm tra CVE']
+        choice_in_menu = entry_dynamic_menu(main_menu_func,len(main_menu_func),">>>",symbols_color=prettyAnnounce.bcolors.OKGREEN,
+        header="ỨNG DỤNG KHAI THÁC LỖ HỔNG LINUX\n LÊ THANH TUẤN")
         if(choice_in_menu == '1'):
             clean_terminal()
             get_system_info()
-            input('Ấn Enter để thoát ra menu')
+            stop_terminal()
         elif choice_in_menu == '2':
             choose_in_cve_menu = cve_menu()
             if(choose_in_cve_menu!=None):
                 do_cve(choose_in_cve_menu)
-        elif choice_in_menu == '3':
+        elif choice_in_menu == '0':
             exit()
-    
-    # run_exploit.run()
-    # list_dir('/home/cheaterdxd')
-    # list_dir_verbose('/home/cheaterdxd/dttn/')
-    # list_process()
-
-
 
 
 if __name__ == "__main__":

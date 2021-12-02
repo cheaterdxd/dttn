@@ -8,7 +8,7 @@ def is_path_exist(path):
     return Path(path).exists()
 
 def clean_terminal():
-    # importFile.os.system('clear')
+    # importFile.os.system('reset')
     print('\033[2J')
     print('\033[0;0H')
 

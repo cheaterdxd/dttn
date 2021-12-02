@@ -11,10 +11,10 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 type_of_log = {
-    'done': [bcolors.OKGREEN,'v'],
-    'fail': [bcolors.FAIL,'-'],
-    'info': [bcolors.OKBLUE,'*'],
-    'warning': [bcolors.WARNING, '!']
+    'done': [bcolors.OKGREEN,'☑️'],
+    'fail': [bcolors.FAIL,'❌'],
+    'info': [bcolors.OKBLUE,'ℹ️'],
+    'warning': [bcolors.WARNING, '⚠️']
 }
 
 # def print_error_bo
@@ -29,4 +29,7 @@ class log:
         log.print_it_out(type_of_log[log.warning.__name__][0],type_of_log[log.warning.__name__][1],mess)
 
     def print_it_out(color, symbols, mess, endc='\n'):
-        print(f"{color}[{symbols}] {bcolors.ENDC} {mess}",end=endc)
+        print(f"{color}{symbols} {bcolors.ENDC} {mess}",end=endc)
+
+    def draw_line(len_ , colors):
+        print(f"{colors}{'─'*len_}{bcolors.ENDC}")

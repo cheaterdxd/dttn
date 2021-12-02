@@ -87,4 +87,40 @@ def try_read_sudoers():
     with open('/etc/sudoers','r') as fs:
         print(fs.readlines(10))
 
-try_read_sudoers()
+def menu_header(header:str,break_len):
+    out_format_head = ''
+    import textwrap
+    te = textwrap.wrap(header,break_len,break_long_words=False)
+    out_format_head+=('┌'+'─'*(break_len+2)+'┐')
+    out_format_head+= '\n'
+    for line in te:
+        align_len = int((break_len+2 - len(line))/2)
+        align_text = align_len*' '+line+align_len*' '
+        align_text = align_text.ljust(break_len+2,' ')
+        out_format_head+=('│'+align_text+'│')+'\n'
+    out_format_head+=('└'+'─'*(break_len+2)+'┘')+'\n'
+    return out_format_head
+from pwn import *
+def try_read_stdout():
+    s = process('/bin/sh')
+    cmd = ""
+    while(True):
+        cmd = str(input('>>> ').strip('\n'))
+        if(cmd != 'exit'):
+            print("thực hiện câu lệnh: "+cmd)
+            s.sendline(cmd)
+            out_all =b''
+            while(True):
+                ret1 = (s.recv(48))
+                out_all += ret1
+                if(len(ret1) < 48):
+                    # out_all+=ret1
+                    # print(ret1.decode())
+                    # print(len(ret1))
+                    break
+            print(out_all.decode())
+        else:
+            break
+# try_read_sudoers()
+# print(menu_header("Ứng dụng khai thác lỗ hổng phần mềm made by le thanh tuan",20))
+try_read_stdout()
