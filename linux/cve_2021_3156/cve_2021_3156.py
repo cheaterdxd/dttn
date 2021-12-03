@@ -59,8 +59,6 @@ def check_vuln():
                 except:
                     print('\n')
                     pass 
-                # print(output)
-
         return is_vuln
 
 def build_get_root_libc():
@@ -111,6 +109,8 @@ def run():
         if(b'root' not in output):
             log.fail("Khai thác thất bại! Không thể lấy quyền root! Liên lạc admin!")
         else:
+            log.info("Khai thác thành công! Khởi động các công cụ hỗ trợ!")
+            stop_terminal()
             # promt = succes_promt(s)
             # promt.cmdloop()
             after_exploit_tools(s)
