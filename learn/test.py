@@ -111,9 +111,10 @@ def try_read_stdout():
             s.sendline(cmd)
             out_all =b''
             while(True):
-                ret1 = (s.recv(48))
+                ret1 = (s.recv(1,timeout=0.3))
+                print('debug ', ret1)
                 out_all += ret1
-                if(len(ret1) < 48):
+                if(len(ret1) < 1):
                     # out_all+=ret1
                     # print(ret1.decode())
                     # print(len(ret1))

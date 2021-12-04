@@ -6,12 +6,11 @@ b4: buid file exploit
 b5: chạy file exploit
 '''
 
-from _typeshed import Self
 from pwn import process
-from importFile import root_directory,shlex,subprocess,os
+from importFile import root_directory,shlex,subprocess,os,is_exist_bug
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal, up_root_for_exist_user, yes_no_ask
+from util import list_ext_at_path_by_root, root_do_and_response,clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal, up_root_for_exist_user, yes_no_ask
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
 
@@ -193,6 +192,7 @@ def entry_menu():
             fix_bug()
 
 def entry():
+    
     '''
     Đầu vào cho cve
      - Kiểm tra có dính lỗi?
@@ -200,44 +200,44 @@ def entry():
         + Vào menu chức năng, nếu có
     '''
     clean_terminal()
-    log.info("brute force hệ thống để tìm lỗi\n".upper())
-    if check_vuln() == True:
+
+    log.info("Brute force hệ thống để tìm lỗi\n".upper())
+    global is_exist_bug
+    if is_exist_bug ==-1:
+        if check_vuln() == True:
+            is_exist_bug = 1
+        else:
+            is_exist_bug = 0
+    if(is_exist_bug == 1):
         print(end='\n')
-        log.warning("hệ thống phát hiện lỗi\n".upper())
+        log.warning("Hệ thống phát hiện lỗi\n".upper())
         stop_terminal()
         entry_menu()
-        
     else:
         log.info("Hệ thống của bạn không có lỗi này! Ấn Enter để trở lại (Enter) !")
-
 
 class exploit_tools():
     
     def __init__(self, proc:process):
         self.proc = proc
 
-    def root_do_and_response(self,cmd):
-        root = self.proc
-        if(root.poll()==None):
-            all_o = b''
-            root.sendline(cmd)
-            while(True):
-                out1 = root.recv(48).strip(b'\n')
-                all_o += out1
-                if(len(out1) < 48):
-                    break
-            return all_o.decode()
+    def is_alive(self):
+        if self.proc.poll() == None:
+            return True
         else:
-            return -2 #tiến trình chết
-
-    def do_exit(self, arg):
-        '''Thoát giao diện giao tiếp root'''
-        
+            return False
+    def shutdown_root_process(self):
         self.proc.close()
-        log.done("Đóng root shell!")
-        log.done("Thoát tiến trình khai thác!")
-        temp1 = input("Ấn Enter để tiếp tục")
-        return True
+        self.proc.wait_for_close()
+
+    # def do_exit(self, arg):
+    #     '''Thoát giao diện giao tiếp root'''
+        
+    #     self.proc.close()
+    #     log.done("Đóng root shell!")
+    #     log.done("Thoát tiến trình khai thác!")
+    #     stop_terminal()
+    #     return -1
     
     def do_shell(self):
         '''
@@ -254,16 +254,16 @@ class exploit_tools():
             elif(command == 'exit'):
                 ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
                 if(ret_value == 1):
-                    self.do_exit(0)
-                    return
+                    self.shutdown_root_process()
+                    break
                 elif ret_value == -1: #chưa muốn thoát
                     continue
             elif(command == ''):
                 continue
             else:
-                cmd_out = self.root_do_and_response(command)
+                cmd_out = root_do_and_response(self.proc,command)
                 if(cmd_out == -2):
-                    log.fail("Tiến trình root shell đã đóng!")
+                    log.fail("Tiến trình root shell đã chết!")
                     return 0
                 else:
                     print(cmd_out)
@@ -289,8 +289,6 @@ class exploit_tools():
             process_l = list_process()
 
         if process_l == -1:
-            log.fail("Thực hiện lấy tiến trình xảy ra lỗi!")
-        elif process_l == -2:
             log.fail("Hệ điều hành của bạn không phải linux! Chức năng chưa được xây dựng!")
         else:
             for line in process_l:
@@ -308,8 +306,6 @@ class exploit_tools():
         reponse = leak(arg, self.proc)
         if(reponse == -1):
             log.fail("Đối số của câu lệnh không đúng !")
-        elif reponse == -2:
-            log.fail("Thực hiện lấy thông tin file lỗi! Tiến trình root có thể bị đóng!")
         else:
             for line in reponse:
                 log.info(line)
@@ -361,10 +357,11 @@ class exploit_tools():
     def do_findext(self, path_find, file_ext):
         '''
         Liệt kê tất cả các file theo định dạng đuôi
-        -e [file ext] [path_file]
+        [directory to find]
+        [file ext]
         '''
 
-        list_f_resp = list_ext_at_path(path_find,file_ext)
+        list_f_resp = list_ext_at_path_by_root(self.proc,path_find,file_ext)
         if(len(list_f_resp)==0):
             log.info("Không có kết quả nào tìm được!")
         else:
@@ -390,10 +387,11 @@ def after_exploit_tools(exploit_process:process):
     ]
     # tạo đối tượng của class exploit_tools
     tools = exploit_tools(exploit_process)
-    while(1):
+    while(tools.is_alive()):
         clean_terminal()
         choice_tool = entry_dynamic_menu(tools_list,len(tools_list),">>>",bcolors.OKGREEN, bcolors.FAIL)
         if(choice_tool == '0'):
+            tools.shutdown_root_process()
             return 0
         elif choice_tool == '1':
             tools.do_shell()
@@ -495,9 +493,7 @@ def after_exploit_tools(exploit_process:process):
             is_up_root_successed = tools.do_gain_root(user)
             if(is_up_root_successed==0):
                 log.info(f"Nâng quyền thành công cho {user}")
-            elif is_up_root_successed == -1:
-                log.info(f"Nâng quyền thất bại cho {user}")
             else:
-                log.info(f"Tiền trình khai thác đóng!")
+                log.info(f"Nâng quyền thất bại cho {user}")
         stop_terminal()
 
