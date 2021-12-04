@@ -6,12 +6,12 @@ b4: buid file exploit
 b5: chạy file exploit
 '''
 
+from _typeshed import Self
 from pwn import process
 from importFile import root_directory,shlex,subprocess,os
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
 from util import clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal, up_root_for_exist_user, yes_no_ask
-from cmd import Cmd
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
 
@@ -216,6 +216,20 @@ class exploit_tools():
     def __init__(self, proc:process):
         self.proc = proc
 
+    def root_do_and_response(self,cmd):
+        root = self.proc
+        if(root.poll()==None):
+            all_o = b''
+            root.sendline(cmd)
+            while(True):
+                out1 = root.recv(48).strip(b'\n')
+                all_o += out1
+                if(len(out1) < 48):
+                    break
+            return all_o.decode()
+        else:
+            return -2 #tiến trình chết
+
     def do_exit(self, arg):
         '''Thoát giao diện giao tiếp root'''
         
@@ -231,41 +245,29 @@ class exploit_tools():
             - qexit để thoát khỏi shell
             - exit để đóng root shell (không thể truy cập lại)
         '''
-        s = self.proc
-        if(s.poll()==None):
-            # in_fd = s.stdin
-            # out_fd = s.stdout
-            # err_fd = s.stderr
-            # in2_fd = os.dup(in_fd)
-            # o2_fd = os.dup(out_fd)
-            # e2_fd = os.dup(err_fd) 
-            # s.interactive()
-            while(1):
-                promt_symbols = f"{bcolors.FAIL}# {bcolors.ENDC}"
-                command = str(input(promt_symbols)).strip('\n')
-                if(command == 'qexit'):
-                    log.info("Thoát root shell!")
-                    break
-                elif(command == 'exit'):
-                    ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
-                    if(ret_value == 1):
-                        self.do_exit(0)
-                        return
-                    elif ret_value == -1: #chưa muốn thoát
-                        continue
-                elif(command == ''):
+        while(1):
+            promt_symbols = f"{bcolors.FAIL}# {bcolors.ENDC}"
+            command = str(input(promt_symbols)).strip('\n')
+            if(command == 'qexit'):
+                log.info("Thoát root shell!")
+                break
+            elif(command == 'exit'):
+                ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
+                if(ret_value == 1):
+                    self.do_exit(0)
+                    return
+                elif ret_value == -1: #chưa muốn thoát
                     continue
+            elif(command == ''):
+                continue
+            else:
+                cmd_out = self.root_do_and_response(command)
+                if(cmd_out == -2):
+                    log.fail("Tiến trình root shell đã đóng!")
+                    return 0
                 else:
-                    all_o = b''
-                    s.sendline(command)
-                    while(True):
-                        out1 = s.recv(48).strip(b'\n')
-                        all_o += out1
-                        if(len(out1) < 48):
-                            break
-                    print(all_o.decode())
-        else:
-            log.fail("Tiến trình root shell đã đóng!")
+                    print(cmd_out)
+
     
     def do_list_process(self,arg):
         '''
@@ -498,172 +500,4 @@ def after_exploit_tools(exploit_process:process):
             else:
                 log.info(f"Tiền trình khai thác đóng!")
         stop_terminal()
-
-class succes_promt(Cmd):
-    
-    def __init__(self, proc:process):
-        super().__init__()
-        self.proc = proc
-    def emptyline(self) -> bool:
-        return
-
-    intro = f'{bcolors.OKCYAN}Giao diện giao tiếp root ... Gõ ? để xem danh sách chức năng{bcolors.ENDC}'
-    prompt = f'{bcolors.WARNING}root{bcolors.ENDC} {bcolors.BOLD} lalal \n llalalal \n >>>{bcolors.ENDC} '
-    doc_header = f"{bcolors.OKGREEN}Gõ help <command> để xem cách sử dụng{bcolors.ENDC}"
-    undoc_header = f"{bcolors.OKGREEN}Một số command khác{bcolors.ENDC}"
-
-    def do_help(self, arg: str) :
-        '''Hướng dẫn sử dụng các câu lệnh trong trình giao tiếp'''
-        return super().do_help(arg)
-    
-    def do_exit(self, arg):
-        '''Thoát giao diện giao tiếp root'''
-        
-        self.proc.close()
-        log.done("Đóng root shell!")
-        log.done("Thoát tiến trình khai thác!")
-        temp1 = input("Ấn Enter để tiếp tục")
-        return True
-    
-    def do_shell(self,arg):
-        '''
-        Trực tiếp thao tác trên shell bằng quyền của root
-            - qexit để thoát khỏi shell
-            - exit để đóng root shell (không thể truy cập lại)
-        '''
-        s = self.proc
-        if(s.poll()==None):
-            while(1):
-                promt_symbols = f"{bcolors.FAIL}# {bcolors.ENDC}"
-                command = str(input(promt_symbols)).strip('\n')
-                if(command == 'qexit'):
-                    log.info("Thoát root shell!")
-                    break
-                if(command == 'exit'):
-                    ret_value = yes_no_ask("Bạn có chắc muốn thoát cả tiến trình khai thác hay không? \n Gợi ý: qexit để thoát chức năng shell.")
-                    if(ret_value == 1):
-                        self.do_exit(0)
-                        return
-                    elif ret_value == -1: #chưa muốn thoát
-                        continue
-                try:
-                    s.sendline(command)
-                    while(True):
-                        out = s.recvline(timeout=0.3).strip(b'\n').decode()
-                        if(out==''):
-                            break
-                        print(out)
-                except:
-                    log.info("Tiến trình root shell đã đóng!")
-                    break
-        else:
-            log.fail("Tiến trình root shell đã đóng!")
-    
-    def do_list_process(self,arg):
-        '''
-        Cách sử dụng:
-
-        list_process [normal/root]
-
-        normal : Lấy thông tin các tiến trình trên hệ thống với quyền user thường
-        root   : lấy thông tin các tiến trình trên hệ thống với quyền user root
-
-        ví du: list_process root
-        Kết quả:
-        [*]  USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
-        [*]  root         1  0.0  0.0    900   532 ?        Sl   09:38   0:00 /init
-        '''
-        if arg == 'root':
-            process_l = list_process_as_root(self.proc)
-        else:
-            process_l = list_process()
-
-        if process_l == -1:
-            log.fail("Thực hiện lấy tiến trình xảy ra lỗi!")
-        elif process_l == -2:
-            log.fail("Hệ điều hành của bạn không phải linux! Chức năng chưa được xây dựng!")
-        else:
-            for line in process_l:
-                log.info(line)
-    
-    def do_leak(self,arg):
-        '''
-        Lấy thông tin của file user và passwd
-        Cách sử dụng:
-        leak [passwd/shadow]
-
-        passwd: file chứa mật khẩu của tất cả user trên hệ thống
-        shadow: file chứa tất cả user trên hệ thống
-        '''
-        reponse = leak(arg, self.proc)
-        if(reponse == -1):
-            log.fail("Đối số của câu lệnh không đúng !")
-        elif reponse == -2:
-            log.fail("Thực hiện lấy thông tin file lỗi! Tiến trình root có thể bị đóng!")
-        else:
-            for line in reponse:
-                log.info(line)
-
-    def do_tree_path(self,arg):
-        '''
-        Liệt kê các tệp tin trong đường dẫn được cung cấp
-
-        Cách sử dụng:
-        tree_path [-option] [path]
-        
-        option:
-            -v: chế độ chi tiết, liệt kê tất cả: thư mục, tệp tin, tệp ẩn,...
-                Lưu ý: trong chế độ này, không nên chọn thư mục có quá nhiều tệp tin sâu, như / (root path), /usr, /home,...
-                Sẽ tốn thời gian rất lâu để liệt kê hết. 
-            -d: chế độ chỉ xem các tệp là thư mục. 
-        ví dụ: 
-                root >>> tree_path -d /
-                ├── home
-                ├── srv
-                ├── etc
-                ├── opt
-                ├── root
-                ├── lib
-                ├── mnt
-        ví dụ: 
-                root >>> tree_path -v /home/cheaterdxd/dttn/
-                ├── linux
-                │   ├── readme.txt
-                │   └── cve_2021_3156
-                │       ├── __pycache__
-                │       │   ├── run_exploit.cpython-310.pyc
-                │       │   └── run_exploit.cpython-36.pyc
-                │       ├── lpe_libc.c
-                │       ├── run_exploit.py
-                │       ├── libnss_a
-                │       │   └── lpe_libc.so.2
-                │       ├── exploit.c
-                │       └── poc
-        '''
-        arg_l = shlex.split(arg)
-        if(arg_l[0] not in ['-d','-v']):
-            log.fail("Đối số option không chính xác. Vui lòng kiểm tra lại!")
-        else:
-            if(arg_l[0] == '-v'):
-                list_dir_verbose(arg_l[1])
-            else:
-                list_dir(arg_l[1])
-
-    def do_findext(self, arg):
-        '''
-        Liệt kê tất cả các file theo định dạng đuôi
-        -e [file ext] [path_file]
-        '''
-        arg_l = shlex.split(arg)
-        options = ['-e']
-        path_find = arg_l[2]
-        file_ext = arg_l[1]
-        if(arg_l[0] not in options):
-            print(arg)
-            log.fail("Đối số không chính xác, vui lòng kiểm tra lại!")
-        else:
-            list_f_resp = list_ext_at_path(path_find,file_ext)
-            for f in list_f_resp:
-                print(f)
-
 

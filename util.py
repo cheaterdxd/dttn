@@ -64,7 +64,6 @@ def list_dir(path):
     for line in tree_dir(Path(path)):
         print(line)
 
-
 def list_dir_verbose(path):
     for line in tree_in_verbose(Path(path)):
         print(line)
