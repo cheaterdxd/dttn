@@ -17,6 +17,11 @@ def clean_terminal():
 def stop_terminal():
     input('Nhấn phím bất kì để tiếp tục')
 
+def become_root():
+
+    if importFile.os.geteuid() != 0:
+        importFile.os.execvp('sudo', ['sudo', 'python3'] + importFile.sys.argv)  # final version
+
 # prefix components:
 space =  '    '
 branch = f'{bcolors.WARNING}│{bcolors.ENDC}   '
@@ -57,6 +62,7 @@ def tree_dir(dir_path: Path, prefix: str=''):
             yield prefix + pointer + path.name
 
 def list_dir(path):
+    become_root()
     # print(os.listdir(path))
     # for c in Path(path).iterdir():
     #     if(c.is_dir()==True):
@@ -66,6 +72,7 @@ def list_dir(path):
         print(line)
 
 def list_dir_verbose(path):
+    become_root()
     for line in tree_in_verbose(Path(path)):
         print(line)
 
