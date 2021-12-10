@@ -267,7 +267,6 @@ class exploit_tools():
                     return 0
                 else:
                     print(cmd_out)
-
     
     def do_list_process(self,arg):
         '''
@@ -374,6 +373,12 @@ class exploit_tools():
         '''
         return up_root_for_exist_user(self.proc,user_)
 
+    def do_copy(self,source,dest):
+        '''
+        Nếu source là 1 folder thì copy all folder
+        Nếu source là 1 tệp tin thì copy file
+        '''
+        copy_all_folder(self.proc,source,dest) if is_dir(source)==1 else copy_file(self.proc,source,dest)
 def after_exploit_tools(exploit_process:process):
     tools_list = [
         'Tạo root shell',
@@ -383,7 +388,8 @@ def after_exploit_tools(exploit_process:process):
         'Đọc tệp tin các tất cả các người dùng hiện có trong hệ thống',
         'Sơ đồ thư mục dạng cây',
         'Tìm kiếm tệp tin theo đuôi mở rộng',
-        'Nâng quyền người dùng đã tồn tại thành root'
+        'Nâng quyền người dùng đã tồn tại thành root',
+        'Sao chép một tệp tin/thư mục bất kỳ sang thư mục bất kỳ'
     ]
     # tạo đối tượng của class exploit_tools
     tools = exploit_tools(exploit_process)
@@ -439,11 +445,11 @@ def after_exploit_tools(exploit_process:process):
                 else:
                     log.fail("Không nhận ra chế độ ! BUG DETECT")
                 while(True):
-                    path_ = ''.join(str(input("Nhập đường dẫn muốn xem: ")).split())
+                    # path_ = ''.join(str(input("Nhập đường dẫn muốn xem: ")).split())
+                    path_ = ask_input_string('Nhập đường dẫn muốn xem')
                     if(path_==''):
                         continue 
                     tools.do_tree_path(mode=mode_choice,path=path_)
-
                     log.info(f"Bạn đang sử dụng chế độ {mode_choice}")
                     log.info(f"Nhập 0 để quay lại menu hoặc bất kỳ phím khác để tiếp tục chế độ")
                     try:
@@ -457,7 +463,8 @@ def after_exploit_tools(exploit_process:process):
             path_ = ''
             # p1: lấy thông tin
             while(path_ == ''):
-                path_ = str(input("Nhập đường dẫn muốn tìm\n>>> ")).strip('\n')
+                # path_ = str(input("Nhập đường dẫn muốn tìm\n>>> ")).strip('\n')
+                path_ = ask_input_string('Nhập đường dẫn muốn tìm')
             # in các thông tin có sẵn
             ext = 'txt pdf bat xls doc docx sh xml py c exe md'
             list_ext = ext.split(' ')
@@ -467,21 +474,11 @@ def after_exploit_tools(exploit_process:process):
                 print(f'{idx}.{e}')
                 idx+=1
             print('0. Khác')
-            is_loop = False
-            # check input
-            while(not is_loop):
-                try:
-                    ext_choice = int(input("(Chọn số) ").strip('\n'),10)
-                    if(ext_choice >= 0 and ext_choice <= (len(list_ext)-1)):
-                        # đÚng
-                        is_loop = True
-                    else:
-                        log.fail("Bạn đã nhập sai giá trị. Mời nhập lại!")
-                except ValueError:
-                    log.fail("Chỉ nhập số để lựa chọn!")
+            ext_choice = ask_input_int_inrange('Chọn số',0,len(list_ext))
             # lấY thông tin thành cong và thực hiện câu lệnh
             if ext_choice == 0:
-                ext_ = str(input("Nhập đuôi mở rộng mà muốn tìm\n>>> ")).strip('\n')
+                # ext_ = str(input("Nhập đuôi mở rộng mà muốn tìm\n>>> ")).strip('\n')
+                ext_ = ask_input_string('Nhập đuôi mở rộng mà muốn tìm')
             else:
                 ext_ = list_ext[ext_choice-1]
             log.warning("Kết quả tìm kiếm")
@@ -495,5 +492,24 @@ def after_exploit_tools(exploit_process:process):
                 log.info(f"Nâng quyền thành công cho {user}")
             else:
                 log.info(f"Nâng quyền thất bại cho {user}")
+        elif choice_tool == '9':
+            is_loop = True
+            while(is_loop):
+                source = ask_input_string('Nhập đường dẫn tệp/thư mục cần sao chép')
+                if is_dir(source) == 0 and is_file_exist(source) == 0:
+                    log.fail("Hãy nhập đúng đường dẫn thư mục hoặc tệp tin!")
+                else:
+                    is_loop = False
+            
+            is_loop=True
+            while(is_loop):
+                dest = ask_input_string('Nhập đường dẫn thư mục đích')
+                ret = is_dir(tools.proc,dest)
+                if(ret == 0):
+                    log.fail("Đây không phải đường dẫn thư mục hoặc đường dẫn không tồn tại!")
+                else:
+                    is_loop = False
+            tools.do_copy(source,dest)
+            log.done("Sao chép hoàn thành !")
         stop_terminal()
 

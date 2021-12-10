@@ -32,3 +32,5 @@ linux/cve_2021_3156/__pycache__/cve_2021_3156.cpython-36.pyc
 saveJson/sysInfo.json
 linux/cve_2021_3156/libnss_a/lpe_libc.so.2
 linux/cve_2021_3156/__pycache__/cve_2021_3156.cpython-36.pyc
+linux/cve_2021_3156/__pycache__/cve_2021_3156.cpython-36.pyc
+__pycache__/util.cpython-36.pyc

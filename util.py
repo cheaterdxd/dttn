@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from pwnlib.tubes.process import process
+
 import importFile
 from executeCommand import executeOnce
 from formatOutput.prettyAnnounce import bcolors, log
@@ -8,6 +9,25 @@ from formatOutput.prettyAnnounce import bcolors, log
 
 def is_path_exist(path):
     return Path(path).exists()
+def is_dir(root_talk:process, path:str)->int:
+    '''
+    Kiểm tra path có phải đường dẫn thật tồn tại không?
+    return 1: đúng là 1 đường dẫn tồn tại
+    return 0: không tồn tại hoặc không phải đường dẫn
+    '''
+    cmd = f'test -d {path} && echo 1 || echo 0'
+    resp = root_do_and_response(root_talk,cmd).strip('\n')
+    return (1 if(resp == '1') else 0)
+
+def is_file_exist(root_talk:process, path:str)->int:
+    '''
+    Kiểm tra path có phải đường dẫn thật tồn tại không?
+    return 1: đúng là 1 đường dẫn tồn tại
+    return 0: không tồn tại hoặc không phải đường dẫn
+    '''
+    cmd = f'test -f {path} && echo 1 || echo 0'
+    resp = root_do_and_response(root_talk,cmd).strip('\n')
+    return (1 if(resp == '1') else 0)
 
 def clean_terminal():
     # importFile.os.system('reset')
@@ -207,8 +227,9 @@ def download_file(url,file_name,file_container):
         + filename : name of file use after completed
         + file_container: parent folder path of the file
     '''
-    import requests
     import threading
+
+    import requests
     log.info(f"Tải tệp từ {url} , lưu vào {file_container}")
     global is_done
     try:
@@ -308,3 +329,43 @@ def up_root_for_exist_user(root_talk, username:str):
             return 0
 
     return -1
+
+def copy_file(root_talk:process, file_source:str, dest:str):
+    '''
+    Sao chép file từ file_source sang thư mục dest
+    '''
+    cmd = f'cp {file_source} {dest}'
+    root_do_and_response(root_talk,cmd)
+
+def copy_all_folder(root_talk:process, dir_source:str, dest:str):
+    '''
+    Sao chép thư mục từ dir_source sang thư mục dest
+    '''
+    cmd = f'cp -R {dir_source} {dest}'
+    root_do_and_response(root_talk,cmd)
+
+def ask_input_string(ask:str)->str:
+    '''
+    Hỏi nhập và trả về answer
+    '''
+    ans = ''.join(str(input(f'{ask}\n>>> ')).split())
+    return ans
+
+def ask_input_int_inrange(ask:str, from_:int, to_:int)->int:
+    '''
+    Hỏi yêu cầu nhập số trong khoảng từ from_ đến to_
+    '''
+    is_loop = False
+    ext_choice = -1
+    # check input
+    while(not is_loop):
+        try:
+            ext_choice = int(''.join(str(input(f"{ask}\n>>> ")).split()),10)
+            if(ext_choice >= from_ and ext_choice <= to_):
+                # đÚng
+                is_loop = True
+            else:
+                log.fail("Bạn đã nhập sai giá trị. Mời nhập lại!")
+        except ValueError:
+            log.fail("Chỉ nhập số để lựa chọn!")
+    return ext_choice
