@@ -17,64 +17,91 @@ def clean_terminal():
 def stop_terminal():
     input('Nhấn phím bất kì để tiếp tục')
 
-def become_root():
-
-    if importFile.os.geteuid() != 0:
-        importFile.os.execvp('sudo', ['sudo', 'python3'] + importFile.sys.argv)  # final version
-
 # prefix components:
 space =  '    '
-branch = f'{bcolors.WARNING}│{bcolors.ENDC}   '
+branch = f'{bcolors.WARNING}│{bcolors.ENDC}'
 # pointers:
-tee =    f'{bcolors.WARNING}├──{bcolors.ENDC} '
-last =   f'{bcolors.WARNING}└──{bcolors.ENDC} '
+tee =    f'{bcolors.WARNING}├──{bcolors.ENDC}'
+last =   f'{bcolors.WARNING}└──{bcolors.ENDC}'
 
-def tree_in_verbose(dir_path: Path, prefix: str=''):
-    """A recursive generator, given a directory Path object
-    will yield a visual tree structure line by line
-    with each line prefixed by the same characters
-    """    
-    contents = list(dir_path.iterdir())
-    # contents each get pointers that are ├── with a final └── :
-    pointers = [tee] * (len(contents) - 1) + [last]
-    for pointer, path in zip(pointers, contents):
-        if(path.is_dir()):
-            yield prefix + pointer + bcolors.OKCYAN + path.name + bcolors.ENDC
-            extension = branch if pointer == tee else space 
-            # i.e. space because last, └── , above so no more |
-            yield from tree_in_verbose(path, prefix=prefix+extension)
+def parsing_line_ls(line:str)-> list:
+    '''
+    Sử dụng để trích xuất từ dòng của ls command
+    '''
+    line = line.split(' ')
+
+    while('' in line):
+        idx = line.index('')
+        del line[idx]
+    return [line[0], line[8]]
+
+def ls_normal(root_talk:process, path:str)->list:
+    '''
+    thực thi ls -l [path] 
+    retunr:
+    list các tệp trong đường dẫn
+    '''
+    cmd = f'ls -l {path}'
+    resp = root_do_and_response(root_talk,cmd)
+    chia_enter = resp.split('\n')
+    list_out =[]
+    del chia_enter[0]
+    del chia_enter[len(chia_enter)-1]
+    for line_enter in chia_enter:
+        # print(line_enter)
+        name_and_type = parsing_line_ls(line_enter)
+        list_out.append(name_and_type)
+    return list_out
+
+def color_ls(list_in:list):
+    '''
+    tô màu và in ra kết quả
+    '''
+    for i in list_in:
+        if('d' == i[0][0]):
+            print(f'{last}{bcolors.OKCYAN}{i[1]}{bcolors.ENDC}')
         else:
-            yield prefix + pointer + path.name
-        # if path.is_dir(): # extend the prefix and recurse:
-            
-def tree_dir(dir_path: Path, prefix: str=''):
-    """A recursive generator, given a directory Path object
-    will yield a visual tree structure line by line
-    with each line prefixed by the same characters
-    """    
-    contents = list(dir_path.iterdir())
-    # contents each get pointers that are ├── with a final └── :
-    pointers = [tee] * (len(contents) - 1) + [last]
-    for pointer, path in zip(pointers, contents):
-        if(path.is_dir()):
-            yield prefix + pointer + bcolors.OKCYAN + path.name + bcolors.ENDC
+            print(f'{last}{i[1]}')
+
+def ls_verbose(root_talk: process, path:str)->dict:
+    '''
+    thực thi ls -l -R [path] : liệt kê đệ quy các thư mục trong đường dẫn
+    retunr:
+    dict: các tệp trong đường dẫn
+    '''
+    cmd = f'ls -l -R {path}'
+    resp = root_do_and_response(root_talk,cmd)
+    folder_split = (resp.split("\n\n"))
+    dict_dir = {}
+    dict_dir['root_path'] = path
+    for i in (folder_split):
+        enter_split  = i.split('\n')
+        name = enter_split[0][0:-1]
+        del enter_split[0] # del name
+        del enter_split[0] # del total line
+        element_in_folder = []
+        for line_enter_split in enter_split:
+            if line_enter_split != '':
+                name_and_type = parsing_line_ls(line_enter_split)
+                element_in_folder.append(name_and_type)
+        dict_dir[name] = element_in_folder
+    return dict_dir
+
+def color_verbose_ls(dict_dir:dict,root_path:str,indent=0):
+    '''
+    tô màu cho liệt kê đệ quy
+    indent: 0 ở vòng root
+    '''
+    # print(dict_dir)
+    level_prefix = (branch if indent>0 else '')+indent*space + (last if indent>0 else "")
+    print(f'{level_prefix} {bcolors.OKCYAN}{root_path}{bcolors.ENDC}')
+    sub_of_root = dict_dir[root_path] # a list
+    for sub in sub_of_root:
+        new_indent=indent+1
+        if sub[0][0] == 'd':
+            color_verbose_ls(dict_dir,root_path+'/'+sub[1],new_indent)
         else:
-            yield prefix + pointer + path.name
-
-def list_dir(path):
-    become_root()
-    # print(os.listdir(path))
-    # for c in Path(path).iterdir():
-    #     if(c.is_dir()==True):
-    #         print(c.absolute())
-    #         list_dir(c.absolute())
-    for line in tree_dir(Path(path)):
-        print(line)
-
-def list_dir_verbose(path):
-    become_root()
-    for line in tree_in_verbose(Path(path)):
-        print(line)
+            print((branch if (new_indent)>0 else '')+space*(new_indent)+(tee if new_indent>0 else "")+ sub[1])
 
 def list_process():
     '''
@@ -222,8 +249,7 @@ def print_check_stdout_stderr(arg):
     if(stderr_s!='' and not 'warning' in stderr_s and not "WARNING" in stderr_s):
         log.fail(stderr_s)
 
-
-def root_do_and_response(root:process,cmd):
+def root_do_and_response(root:process,cmd)->str:
     '''
     root thực hiện lệnh và trả về 
     output: 

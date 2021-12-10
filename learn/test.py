@@ -124,4 +124,141 @@ def try_read_stdout():
             break
 # try_read_sudoers()
 # print(menu_header("Ứng dụng khai thác lỗ hổng phần mềm made by le thanh tuan",20))
-try_read_stdout()
+# try_read_stdout()
+"""
+def tree_dir_in_verbose(dir_path: Path, prefix: str=''):    
+    contents = list(dir_path.iterdir())
+    # contents each get pointers that are ├── with a final └── :
+    pointers = [tee] * (len(contents) - 1) + [last]
+    for pointer, path in zip(pointers, contents):
+        if(path.is_dir()):
+            yield prefix + pointer + bcolors.OKCYAN + path.name + bcolors.ENDC
+            extension = branch if pointer == tee else space 
+            # i.e. space because last, └── , above so no more |
+            yield from tree_dir_in_verbose(path, prefix=prefix+extension)
+        else:
+            yield prefix + pointer + path.name
+        # if path.is_dir(): # extend the prefix and recurse:
+            
+def tree_dir(dir_path: Path, prefix: str=''):
+ch line prefixed by the same characters
+
+    contents = list(dir_path.iterdir())
+    # contents each get pointers that are ├── with a final └── :
+    pointers = [tee] * (len(contents) - 1) + [last]
+    for pointer, path in zip(pointers, contents):
+        if(path.is_dir()):
+            yield prefix + pointer + bcolors.OKCYAN + path.name + bcolors.ENDC
+        else:
+            yield prefix + pointer + path.name
+
+def tree_dir(root_talk:process,path):
+    '''
+    liệt kê tất cả các tệp trong 1 thư mục
+    
+    return: []
+    '''
+    command = f'ls -l {path}'
+    resp = root_do_and_response(root_talk,command)
+    list_f = resp.split('\n')
+
+def list_dir(path):
+    # print(os.listdir(path))
+    # for c in Path(path).iterdir():
+    #     if(c.is_dir()==True):
+    #         print(c.absolute())
+    #         list_dir(c.absolute())
+    for line in tree_dir(Path(path)):
+        print(line)
+
+def list_dir_verbose(path):
+    for line in tree_dir_in_verbose(Path(path)):
+        print(line)
+"""
+
+def parsing_line_ls(line:str)-> list:
+
+    line = line.split(' ')
+
+    while('' in line):
+        idx = line.index('')
+        del line[idx]
+    return [line[0], line[8]]
+
+def try_read_ls(path:str):
+    import subprocess as subpr
+    cmd = f'ls -l {path}'
+    resp = subpr.run(cmd,stdout=subpr.PIPE,shell=True)
+    chia_enter = (resp.stdout.decode().split("\n"))
+    list_out =[]
+    del chia_enter[0]
+    del chia_enter[len(chia_enter)-1]
+    for line_enter in chia_enter:
+        # print(line_enter)
+        name_and_type = parsing_line_ls(line_enter)
+        list_out.append(name_and_type)
+    return list_out
+
+def color_ls(list_in:list):
+    for i in list_in:
+        if('d' == i[0][0]):
+            print('xanh '+i[1])
+        else:
+            print('xam '+i[1])
+
+def ls_verbose(path:str):
+    import subprocess as subpr
+    cmd = f'ls -l -R {path}'
+    resp = subpr.run(cmd,stdout=subpr.PIPE,shell=True)
+    folder_split = (resp.stdout.decode().split("\n\n"))
+    dict_dir = {}
+    dict_dir['root_path'] = path
+    for i in (folder_split):
+        # print(i)
+        # print('end =============================================================')
+        enter_split  = i.split('\n')
+        name = enter_split[0][0:-1]
+        del enter_split[0] # del name
+        del enter_split[0] # del total line
+        element_in_folder = []
+        for line_enter_split in enter_split:
+            if line_enter_split != '':
+                name_and_type = parsing_line_ls(line_enter_split)
+                element_in_folder.append(name_and_type)
+        dict_dir[name] = element_in_folder
+    return dict_dir
+def color_verbose_ls(dict_dir:dict,root_path:str,indent):
+    level_prefix = ('│'if indent>0 else '')+indent*'    ' + ('└──' if indent>0 else "")
+    print(level_prefix + root_path)
+    sub_of_root = dict_dir[root_path] # a list
+    
+
+    for sub in sub_of_root:
+        new_indent=indent+1
+        if sub[0][0] == 'd':
+            
+            color_verbose_ls(dict_dir,root_path+'/'+sub[1],new_indent)
+        else:
+            print(('│'if (new_indent)>0 else '')+'    '*(new_indent)+('└──' if new_indent>0 else "")+ sub[1])
+
+space =  '    '
+branch = f'│  '
+# pointers:
+tee =    f'├── '
+last =   f'└── '
+def color_verbose_ls2(dict_dir:dict,root_path:str,prefix = ''):
+    # print("current prefix :" + prefix)
+    global branch, space, tee, last
+    print(prefix +tee+ root_path)
+    sub_of_root = dict_dir[root_path] # a list
+    for sub in sub_of_root:
+        if sub[0][0] == 'd':
+            prefix_next = branch +prefix+ space
+            color_verbose_ls2(dict_dir,root_path+'/'+sub[1],prefix_next)
+        else:
+            print(prefix+ sub[1])
+
+
+
+# color_ls(try_read_ls('/'))
+color_verbose_ls(ls_verbose('/home/cheaterdxd/dttn/linux'),'/home/cheaterdxd/dttn/linux',0)

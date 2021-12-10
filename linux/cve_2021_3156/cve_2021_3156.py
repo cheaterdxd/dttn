@@ -10,7 +10,8 @@ from pwn import process
 from importFile import root_directory,shlex,subprocess,os,is_exist_bug
 from executeCommand import executeInteractive, executeOnce
 from formatOutput.prettyAnnounce import log,bcolors
-from util import list_ext_at_path_by_root, root_do_and_response,clean_terminal, decompress_gz, download_file, is_path_exist, list_ext_at_path,list_process, list_dir,list_process_as_root,list_dir_verbose,leak, print_check_stdout_stderr, stop_terminal, up_root_for_exist_user, yes_no_ask
+import importFile
+from util import *
 from findInfoSystem import is_Linux
 from menu_list import entry_dynamic_menu
 
@@ -109,6 +110,7 @@ def run():
             log.fail("Khai thác thất bại! Không thể lấy quyền root! Liên lạc admin!")
         else:
             log.info("Khai thác thành công! Khởi động các công cụ hỗ trợ!")
+            # s.sendline('export TERM=linux; export TERMINFO=/etc/terminfo')
             stop_terminal()
             # promt = succes_promt(s)
             # promt.cmdloop()
@@ -176,7 +178,6 @@ def fix_bug():
                     print_check_stdout_stderr(executeOnce('sudo make install'))
                 else:
                     log.fail(f"Không tồn tại thư mục {setup_folder}! Xảy ra lỗi nghiêm trọng.")
-
         stop_terminal()
 
 def entry_menu():
@@ -192,7 +193,6 @@ def entry_menu():
             fix_bug()
 
 def entry():
-    
     '''
     Đầu vào cho cve
      - Kiểm tra có dính lỗi?
@@ -350,9 +350,9 @@ class exploit_tools():
 
 
         if(mode == 'v'):
-            list_dir_verbose(path)
+            color_verbose_ls(ls_verbose(self.proc,path),path)
         else:
-            list_dir(path)
+            color_ls(ls_normal(self.proc,path))
 
     def do_findext(self, path_find, file_ext):
         '''
@@ -439,7 +439,7 @@ def after_exploit_tools(exploit_process:process):
                 else:
                     log.fail("Không nhận ra chế độ ! BUG DETECT")
                 while(True):
-                    path_ = str(input("Nhập đường dẫn muốn xem: ")).strip('\n')
+                    path_ = ''.join(str(input("Nhập đường dẫn muốn xem: ")).split())
                     if(path_==''):
                         continue 
                     tools.do_tree_path(mode=mode_choice,path=path_)

