@@ -378,7 +378,10 @@ class exploit_tools():
         Nếu source là 1 folder thì copy all folder
         Nếu source là 1 tệp tin thì copy file
         '''
-        copy_all_folder(self.proc,source,dest) if is_dir(source)==1 else copy_file(self.proc,source,dest)
+        copy_all_folder(self.proc,source,dest) if is_dir(self.proc, source)==1 else copy_file(self.proc,source,dest)
+        dest_new_name = dest + '/' + os.path.basename(source)
+        upgrade_permisson_on_path(self.proc,dest_new_name)
+
 def after_exploit_tools(exploit_process:process):
     tools_list = [
         'Tạo root shell',
@@ -496,7 +499,7 @@ def after_exploit_tools(exploit_process:process):
             is_loop = True
             while(is_loop):
                 source = ask_input_string('Nhập đường dẫn tệp/thư mục cần sao chép')
-                if is_dir(source) == 0 and is_file_exist(source) == 0:
+                if is_dir(tools.proc,source) == 0 and is_file_exist(tools.proc,source) == 0:
                     log.fail("Hãy nhập đúng đường dẫn thư mục hoặc tệp tin!")
                 else:
                     is_loop = False

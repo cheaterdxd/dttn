@@ -344,6 +344,13 @@ def copy_all_folder(root_talk:process, dir_source:str, dest:str):
     cmd = f'cp -R {dir_source} {dest}'
     root_do_and_response(root_talk,cmd)
 
+def upgrade_permisson_on_path(root_talk:process, path:str):
+    '''
+    Nâng cấp quyền cho đường dẫn thành 777
+    '''
+    cmd = f'chmod 777 {path}'
+    root_do_and_response(root_talk,cmd)
+
 def ask_input_string(ask:str)->str:
     '''
     Hỏi nhập và trả về answer
