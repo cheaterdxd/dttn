@@ -162,20 +162,35 @@ def fix_bug():
             if check_decompress >= 0:
                 log.done("Giải nén thành công!")
                 log.info("Cài đặt tệp vá lỗi!")
-                
+                is_ok_continue = True
                 if is_path_exist(setup_folder):
                     os.chdir(setup_folder)
                     log.info("Cập nhật apt")
-                    print_check_stdout_stderr(executeOnce('sudo apt-get update'))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce('sudo apt-get update'))
+                    if(not is_ok_continue):
+                        log.fail("Xảy ra lỗi cập nhật! Thử lại sau khi ngừng bị lock!")
+                        return 0
                     log.info("Cài đặt công cụ biên dịch Make")
-                    print_check_stdout_stderr(executeOnce("sudo apt-get install make"))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce("sudo apt-get install make"))
+                    if(not is_ok_continue):
+                        log.fail("Xảy ra lỗi cài đặt công cụ make!")
+                        return 0
                     log.info("Cài đặt công cụ Buid-esssential")
-                    print_check_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce('sudo apt-get install build-essential'))
+                    if(not is_ok_continue):
+                        log.fail("Xảy ra lỗi cài đặt công cụ build-essential!")
+                        return 0
                     log.info("Kiểm tra cài dặt trước khi cập nhật sudo")
-                    print_check_stdout_stderr(executeOnce('sudo ./configure'))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce('sudo ./configure'))
+                    if(not is_ok_continue):
+                        log.fail("Cấu hình cài đặt sudo gặp lỗi!")
+                        return 0
                     log.info("Make và cài đặt sudo")
-                    print_check_stdout_stderr(executeOnce('sudo make'))
-                    print_check_stdout_stderr(executeOnce('sudo make install'))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce('sudo make'))
+                    is_ok_continue = print_check_stdout_stderr(executeOnce('sudo make install'))
+                    if(not is_ok_continue):
+                        log.fail("Cài đặt sudo lỗi ở bước cuối!")
+                        return 0
                 else:
                     log.fail(f"Không tồn tại thư mục {setup_folder}! Xảy ra lỗi nghiêm trọng.")
         stop_terminal()

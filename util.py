@@ -264,11 +264,17 @@ def decompress_gz(file_path,dest=""):
         log.fail(f"Không tìm thấy tệp tin {file_path}")
     
 def print_check_stdout_stderr(arg):
+    '''
+    trả về True nếu không có lỗi
+    trả về False nếu có lỗi
+    '''
     stdout_s = arg.stdout.decode()
     stderr_s = arg.stderr.decode()
-    print(stdout_s+'\n'+stderr_s)
+    # print(stdout_s+'\n'+stderr_s)
     if(stderr_s!='' and not 'warning' in stderr_s and not "WARNING" in stderr_s):
         log.fail(stderr_s)
+        return False
+    return True
 
 def root_do_and_response(root:process,cmd)->str:
     '''
